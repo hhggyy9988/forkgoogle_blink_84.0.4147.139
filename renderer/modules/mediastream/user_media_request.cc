@@ -332,6 +332,7 @@ UserMediaRequest* UserMediaRequest::Create(
     const MediaStreamConstraints* options,
     Callbacks* callbacks,
     MediaErrorState& error_state) {
+  VLOG(1) << "hgy:obj=static "  << " " << __FUNCTION__ << " E";
   MediaConstraints audio = ParseOptions(context, options->audio(), error_state);
   if (error_state.HadException())
     return nullptr;
@@ -406,6 +407,7 @@ UserMediaRequest* UserMediaRequest::Create(
     V8NavigatorUserMediaSuccessCallback* success_callback,
     V8NavigatorUserMediaErrorCallback* error_callback,
     MediaErrorState& error_state) {
+  VLOG(1) << "hgy:obj=static " <<  " " << __FUNCTION__ << " E";
   return Create(
       context, controller, UserMediaRequest::MediaType::kUserMedia, options,
       MakeGarbageCollected<V8Callbacks>(success_callback, error_callback),
@@ -415,6 +417,7 @@ UserMediaRequest* UserMediaRequest::Create(
 UserMediaRequest* UserMediaRequest::CreateForTesting(
     const MediaConstraints& audio,
     const MediaConstraints& video) {
+  VLOG(1) << "hgy:obj= static "  << " " << __FUNCTION__ << " E";
   return MakeGarbageCollected<UserMediaRequest>(
       nullptr, nullptr, UserMediaRequest::MediaType::kUserMedia, audio, video,
       nullptr);
@@ -435,6 +438,7 @@ UserMediaRequest::UserMediaRequest(ExecutionContext* context,
               context)),
       controller_(controller),
       callbacks_(callbacks) {
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E media_type = " << static_cast<int>(media_type);
   if (should_disable_hardware_noise_suppression_) {
     UseCounter::Count(context,
                       WebFeature::kUserMediaDisableHardwareNoiseSuppression);

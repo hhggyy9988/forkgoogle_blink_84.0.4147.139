@@ -207,6 +207,7 @@ bool ProcessedLocalAudioSource::EnsureSourceIsStarted() {
 
   // Create the MediaStreamAudioProcessor, bound to the WebRTC audio device
   // module.
+  VLOG(1) << __func__ << " PeerConnectionDependencyFactory maybe new";
   WebRtcAudioDeviceImpl* const rtc_audio_device =
       PeerConnectionDependencyFactory::GetInstance()->GetWebRtcAudioDevice();
   if (!rtc_audio_device) {
@@ -310,8 +311,7 @@ void ProcessedLocalAudioSource::EnsureSourceIsStopped() {
   scoped_refptr<media::AudioCapturerSource> source_to_stop(std::move(source_));
 
   if (WebRtcAudioDeviceImpl* rtc_audio_device =
-          PeerConnectionDependencyFactory::GetInstance()
-              ->GetWebRtcAudioDevice()) {
+          PeerConnectionDependencyFactory::GetInstance()->GetWebRtcAudioDevice()) {
     rtc_audio_device->RemoveAudioCapturer(this);
   }
 

@@ -224,15 +224,15 @@ class MODULES_EXPORT RTCPeerConnectionHandler {
   bool force_encoded_video_insertable_streams() {
     return force_encoded_video_insertable_streams_;
   }
+ 
+  webrtc::PeerConnectionInterface* native_peer_connection() {
+    return native_peer_connection_.get();
+  }
 
  protected:
   // Constructor to be used for constructing mocks only.
   explicit RTCPeerConnectionHandler(
       scoped_refptr<base::SingleThreadTaskRunner> task_runner);
-
-  webrtc::PeerConnectionInterface* native_peer_connection() {
-    return native_peer_connection_.get();
-  }
 
   class Observer;
   friend class Observer;

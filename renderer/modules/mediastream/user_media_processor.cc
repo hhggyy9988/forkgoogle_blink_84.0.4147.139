@@ -560,8 +560,7 @@ UserMediaRequest* UserMediaProcessor::CurrentRequest() {
   return current_request_info_ ? current_request_info_->request() : nullptr;
 }
 
-void UserMediaProcessor::ProcessRequest(UserMediaRequest* request,
-                                        base::OnceClosure callback) {
+void UserMediaProcessor::ProcessRequest(UserMediaRequest* request, base::OnceClosure callback) {
   DCHECK(!request_completed_cb_);
   DCHECK(!current_request_info_);
   request_completed_cb_ = std::move(callback);

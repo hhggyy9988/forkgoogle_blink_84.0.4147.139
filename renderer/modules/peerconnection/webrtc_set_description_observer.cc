@@ -76,31 +76,30 @@ void WebRtcSetDescriptionObserverHandlerImpl::OnSetDescriptionComplete(
       transceivers = pc_->GetTransceivers();
     }
   }
-  blink::TransceiverStateSurfacer transceiver_state_surfacer(
-      main_task_runner_, signaling_task_runner_);
-  transceiver_state_surfacer.Initialize(pc_, track_adapter_map_,
-                                        std::move(transceivers));
+  blink::TransceiverStateSurfacer transceiver_state_surfacer(main_task_runner_, signaling_task_runner_);
+  
+  transceiver_state_surfacer.Initialize(pc_, track_adapter_map_, std::move(transceivers));
+  
   std::unique_ptr<webrtc::SessionDescriptionInterface>
       pending_local_description = pc_->pending_local_description()
                                       ? webrtc::CloneSessionDescription(
                                             pc_->pending_local_description())
                                       : nullptr;
+  
   std::unique_ptr<webrtc::SessionDescriptionInterface>
       current_local_description = pc_->current_local_description()
                                       ? webrtc::CloneSessionDescription(
                                             pc_->current_local_description())
                                       : nullptr;
   main_task_runner_->PostTask(
-      FROM_HERE, base::BindOnce(&WebRtcSetDescriptionObserverHandlerImpl::
-                                    OnSetDescriptionCompleteOnMainThread,
+      FROM_HERE, base::BindOnce(&WebRtcSetDescriptionObserverHandlerImpl::OnSetDescriptionCompleteOnMainThread,
                                 this, std::move(error), pc_->signaling_state(),
                                 std::move(transceiver_state_surfacer),
                                 std::move(pending_local_description),
                                 std::move(current_local_description)));
 }
 
-void WebRtcSetDescriptionObserverHandlerImpl::
-    OnSetDescriptionCompleteOnMainThread(
+void WebRtcSetDescriptionObserverHandlerImpl::OnSetDescriptionCompleteOnMainThread(
         webrtc::RTCError error,
         webrtc::PeerConnectionInterface::SignalingState signaling_state,
         blink::TransceiverStateSurfacer transceiver_state_surfacer,
@@ -111,8 +110,7 @@ void WebRtcSetDescriptionObserverHandlerImpl::
   CHECK(main_task_runner_->BelongsToCurrentThread());
   WebRtcSetDescriptionObserver::States states;
   states.signaling_state = signaling_state;
-  states.sctp_transport_state =
-      transceiver_state_surfacer.SctpTransportSnapshot();
+  states.sctp_transport_state = transceiver_state_surfacer.SctpTransportSnapshot();
   states.transceiver_states = transceiver_state_surfacer.ObtainStates();
   states.pending_local_description = std::move(pending_local_description);
   states.current_local_description = std::move(current_local_description);
@@ -133,8 +131,7 @@ WebRtcSetLocalDescriptionObserverHandler::Create(
       surface_receivers_only);
 }
 
-WebRtcSetLocalDescriptionObserverHandler::
-    WebRtcSetLocalDescriptionObserverHandler(
+WebRtcSetLocalDescriptionObserverHandler::WebRtcSetLocalDescriptionObserverHandler(
         scoped_refptr<base::SingleThreadTaskRunner> main_task_runner,
         scoped_refptr<base::SingleThreadTaskRunner> signaling_task_runner,
         scoped_refptr<webrtc::PeerConnectionInterface> pc,
@@ -142,8 +139,7 @@ WebRtcSetLocalDescriptionObserverHandler::
             track_adapter_map,
         scoped_refptr<WebRtcSetDescriptionObserver> observer,
         bool surface_receivers_only)
-    : handler_impl_(
-          base::MakeRefCounted<WebRtcSetDescriptionObserverHandlerImpl>(
+    : handler_impl_(base::MakeRefCounted<WebRtcSetDescriptionObserverHandlerImpl>(
               std::move(main_task_runner),
               std::move(signaling_task_runner),
               std::move(pc),
@@ -158,8 +154,7 @@ void WebRtcSetLocalDescriptionObserverHandler::OnSuccess() {
   handler_impl_->OnSetDescriptionComplete(webrtc::RTCError::OK());
 }
 
-void WebRtcSetLocalDescriptionObserverHandler::OnFailure(
-    webrtc::RTCError error) {
+void WebRtcSetLocalDescriptionObserverHandler::OnFailure(webrtc::RTCError error) {
   handler_impl_->OnSetDescriptionComplete(std::move(error));
 }
 
@@ -195,8 +190,7 @@ WebRtcSetRemoteDescriptionObserverHandler::
               std::move(observer),
               surface_receivers_only)) {}
 
-WebRtcSetRemoteDescriptionObserverHandler::
-    ~WebRtcSetRemoteDescriptionObserverHandler() = default;
+WebRtcSetRemoteDescriptionObserverHandler::~WebRtcSetRemoteDescriptionObserverHandler() = default;
 
 void WebRtcSetRemoteDescriptionObserverHandler::OnSetRemoteDescriptionComplete(
     webrtc::RTCError error) {

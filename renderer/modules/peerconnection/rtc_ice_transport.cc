@@ -85,6 +85,7 @@ class DefaultIceTransportAdapterCrossThreadFactory
     DCHECK(!port_allocator_);
     DCHECK(!async_resolver_factory_);
 
+	VLOG(1) << __func__ << " PeerConnectionDependencyFactory maybe new";
     auto* rtc_dependency_factory =
         blink::PeerConnectionDependencyFactory::GetInstance();
     port_allocator_ = rtc_dependency_factory->CreatePortAllocator(
@@ -112,11 +113,10 @@ class DefaultIceTransportAdapterCrossThreadFactory
 RTCIceTransport* RTCIceTransport::Create(ExecutionContext* context) {
   scoped_refptr<base::SingleThreadTaskRunner> proxy_thread =
       context->GetTaskRunner(TaskType::kNetworking);
-
+  VLOG(1) << __func__ << " PeerConnectionDependencyFactory maybe new";
   PeerConnectionDependencyFactory::GetInstance()->EnsureInitialized();
   scoped_refptr<base::SingleThreadTaskRunner> host_thread =
-      PeerConnectionDependencyFactory::GetInstance()
-          ->GetWebRtcWorkerTaskRunner();
+      PeerConnectionDependencyFactory::GetInstance()->GetWebRtcWorkerTaskRunner();
   return MakeGarbageCollected<RTCIceTransport>(
       context, std::move(proxy_thread), std::move(host_thread),
       std::make_unique<DefaultIceTransportAdapterCrossThreadFactory>());
@@ -128,11 +128,10 @@ RTCIceTransport* RTCIceTransport::Create(
     RTCPeerConnection* peer_connection) {
   scoped_refptr<base::SingleThreadTaskRunner> proxy_thread =
       context->GetTaskRunner(TaskType::kNetworking);
-
+  VLOG(1) << __func__ << " PeerConnectionDependencyFactory maybe new";
   PeerConnectionDependencyFactory::GetInstance()->EnsureInitialized();
   scoped_refptr<base::SingleThreadTaskRunner> host_thread =
-      PeerConnectionDependencyFactory::GetInstance()
-          ->GetWebRtcWorkerTaskRunner();
+      PeerConnectionDependencyFactory::GetInstance()->GetWebRtcWorkerTaskRunner();
   return MakeGarbageCollected<RTCIceTransport>(
       context, std::move(proxy_thread), std::move(host_thread),
       std::make_unique<DtlsIceTransportAdapterCrossThreadFactory>(

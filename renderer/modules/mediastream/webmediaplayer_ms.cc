@@ -408,6 +408,7 @@ WebMediaPlayer::LoadTiming WebMediaPlayerMS::Load(
   // once Blink-side changes land.
   DCHECK_NE(load_type, kLoadTypeMediaSource);
   web_stream_ = GetWebMediaStreamFromWebMediaPlayerSource(source);
+  
   if (!web_stream_.IsNull())
     web_stream_.AddObserver(this);
 

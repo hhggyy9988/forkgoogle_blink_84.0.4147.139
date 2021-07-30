@@ -259,6 +259,7 @@ void WebRtcMediaStreamTrackAdapter::FinalizeRemoteTrackInitializationOnMainThrea
   DCHECK(main_thread_->BelongsToCurrentThread());
   DCHECK(remote_audio_track_adapter_ || remote_video_track_adapter_);
   VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+
   if (is_initialized_)
     return;
 

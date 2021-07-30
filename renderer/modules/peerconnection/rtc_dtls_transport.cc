@@ -51,9 +51,9 @@ std::unique_ptr<DtlsTransportProxy> CreateProxy(
   LocalFrame* frame = To<LocalDOMWindow>(context)->GetFrame();
   scoped_refptr<base::SingleThreadTaskRunner> proxy_thread =
       frame->GetTaskRunner(TaskType::kNetworking);
+  VLOG(1) << __func__ << " PeerConnectionDependencyFactory maybe new";
   scoped_refptr<base::SingleThreadTaskRunner> host_thread =
-      PeerConnectionDependencyFactory::GetInstance()
-          ->GetWebRtcWorkerTaskRunner();
+      PeerConnectionDependencyFactory::GetInstance()->GetWebRtcWorkerTaskRunner();
 
   return DtlsTransportProxy::Create(*frame, proxy_thread, host_thread,
                                     native_transport, delegate);

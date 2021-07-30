@@ -56,11 +56,11 @@ TransceiverStateSurfacer& TransceiverStateSurfacer::operator=(
 void TransceiverStateSurfacer::Initialize(
     scoped_refptr<webrtc::PeerConnectionInterface> native_peer_connection,
     scoped_refptr<blink::WebRtcMediaStreamTrackAdapterMap> track_adapter_map,
-    std::vector<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>>
-        webrtc_transceivers) {
+    std::vector<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>> webrtc_transceivers) {
   DCHECK(signaling_task_runner_->BelongsToCurrentThread());
   DCHECK(!is_initialized_);
   DCHECK(native_peer_connection);
+
   sctp_transport_snapshot_.transport =
       native_peer_connection->GetSctpTransport();
   if (sctp_transport_snapshot_.transport) {
@@ -78,8 +78,7 @@ void TransceiverStateSurfacer::Initialize(
     base::Optional<blink::RtpSenderState> sender_state;
     auto webrtc_sender = webrtc_transceiver->sender();
     if (webrtc_sender) {
-      std::unique_ptr<blink::WebRtcMediaStreamTrackAdapterMap::AdapterRef>
-          sender_track_ref;
+      std::unique_ptr<blink::WebRtcMediaStreamTrackAdapterMap::AdapterRef>  sender_track_ref;
       if (webrtc_sender->track()) {
         // The track adapter for this track must already exist for us to obtain
         // it, since this cannot be created from the signaling thread.
@@ -87,22 +86,20 @@ void TransceiverStateSurfacer::Initialize(
         // adapters on the signaling thread for initialization on the main
         // thread or wait for Onion Souping to simplify this.
         // https://crbug.com/787254
-        sender_track_ref =
-            track_adapter_map->GetLocalTrackAdapter(webrtc_sender->track());
+        sender_track_ref = track_adapter_map->GetLocalTrackAdapter(webrtc_sender->track());
         CHECK(sender_track_ref);
       }
       sender_state = blink::RtpSenderState(
           main_task_runner_, signaling_task_runner_, webrtc_sender.get(),
           std::move(sender_track_ref), webrtc_sender->stream_ids());
     }
+
     // Create the receiver state.
     base::Optional<blink::RtpReceiverState> receiver_state;
     auto webrtc_receiver = webrtc_transceiver->receiver();
     if (webrtc_receiver) {
       DCHECK(webrtc_receiver->track());
-      auto receiver_track_ref =
-          track_adapter_map->GetOrCreateRemoteTrackAdapter(
-              webrtc_receiver->track().get());
+      auto receiver_track_ref = track_adapter_map->GetOrCreateRemoteTrackAdapter(webrtc_receiver->track().get());
       DCHECK(receiver_track_ref);
       std::vector<std::string> receiver_stream_ids;
       for (auto& stream : webrtc_receiver->streams()) {

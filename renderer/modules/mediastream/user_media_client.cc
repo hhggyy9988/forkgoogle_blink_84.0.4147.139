@@ -94,6 +94,7 @@ UserMediaClient::UserMediaClient(
                   },
                   WrapWeakPersistent(this)),
               std::move(task_runner))) {
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " ctor1";
   if (frame_) {
     // WrapWeakPersistent is safe because the |frame_| owns UserMediaClient.
     frame_->SetIsCapturingMediaCallback(WTF::BindRepeating(
@@ -119,10 +120,13 @@ UserMediaClient::UserMediaClient(
                   },
                   WrapWeakPersistent(this)),
               frame->GetTaskRunner(blink::TaskType::kInternalMedia)),
-          std::move(task_runner)) {}
+          std::move(task_runner)) {
+			VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " ctor2";
+}
 
 UserMediaClient::~UserMediaClient() {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " dtor";
 
   // Ensure that ContextDestroyed() gets called before the destructor.
   DCHECK(!is_processing_request_);
@@ -132,6 +136,7 @@ void UserMediaClient::RequestUserMedia(UserMediaRequest* user_media_request) {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
   DCHECK(user_media_request);
   DCHECK(user_media_request->Audio() || user_media_request->Video());
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
   // GetWindow() may be null if we are in a test.
   // In that case, it's OK to not check frame().
 
@@ -176,6 +181,7 @@ void UserMediaClient::RequestUserMedia(UserMediaRequest* user_media_request) {
 void UserMediaClient::ApplyConstraints(
     blink::ApplyConstraintsRequest* user_media_request) {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
 
   pending_request_infos_.push_back(
       MakeGarbageCollected<Request>(user_media_request));
@@ -184,6 +190,7 @@ void UserMediaClient::ApplyConstraints(
 }
 
 void UserMediaClient::StopTrack(const blink::WebMediaStreamTrack& web_track) {
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
   pending_request_infos_.push_back(MakeGarbageCollected<Request>(web_track));
   if (!is_processing_request_)
     MaybeProcessNextRequestInfo();
@@ -195,6 +202,8 @@ bool UserMediaClient::IsCapturing() {
 
 void UserMediaClient::MaybeProcessNextRequestInfo() {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+  
   if (is_processing_request_ || pending_request_infos_.empty())
     return;
 
@@ -228,6 +237,8 @@ void UserMediaClient::MaybeProcessNextRequestInfo() {
 
 void UserMediaClient::CurrentRequestCompleted() {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+  
   is_processing_request_ = false;
   if (!pending_request_infos_.empty()) {
     frame_->GetTaskRunner(blink::TaskType::kInternalMedia)
@@ -240,6 +251,8 @@ void UserMediaClient::CurrentRequestCompleted() {
 void UserMediaClient::CancelUserMediaRequest(
     UserMediaRequest* user_media_request) {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+  
   {
     // TODO(guidou): Remove this conditional logging. https://crbug.com/764293
     UserMediaRequest* request = user_media_processor_->CurrentRequest();
@@ -276,6 +289,8 @@ void UserMediaClient::CancelUserMediaRequest(
 
 void UserMediaClient::DeleteAllUserMediaRequests() {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+  
   if (frame_)
     frame_->SetIsCapturingMediaCallback(LocalFrame::IsCapturingMediaCallback());
   user_media_processor_->StopAllProcessing();
@@ -285,6 +300,8 @@ void UserMediaClient::DeleteAllUserMediaRequests() {
 
 void UserMediaClient::ContextDestroyed() {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+  
   // Cancel all outstanding UserMediaRequests.
   DeleteAllUserMediaRequests();
 }
@@ -294,16 +311,19 @@ void UserMediaClient::Trace(Visitor* visitor) {
   visitor->Trace(user_media_processor_);
   visitor->Trace(apply_constraints_processor_);
   visitor->Trace(pending_request_infos_);
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
 }
 
 void UserMediaClient::SetMediaDevicesDispatcherForTesting(
     mojo::PendingRemote<blink::mojom::blink::MediaDevicesDispatcherHost>
         media_devices_dispatcher) {
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
   media_devices_dispatcher_.Bind(std::move(media_devices_dispatcher));
 }
 
 blink::mojom::blink::MediaDevicesDispatcherHost*
 UserMediaClient::GetMediaDevicesDispatcher() {
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
   if (!media_devices_dispatcher_) {
     frame_->GetBrowserInterfaceBroker().GetInterface(
         media_devices_dispatcher_.BindNewPipeAndPassReceiver());

@@ -11,6 +11,7 @@
 #include "third_party/blink/renderer/platform/peerconnection/two_keys_adapter_map.h"
 #include "third_party/blink/renderer/platform/wtf/thread_safe_ref_counted.h"
 #include "third_party/webrtc/api/media_stream_interface.h"
+#include "third_party/webrtc/api/peer_connection_interface.h"
 
 namespace base {
 class SingleThreadTaskRunner;
@@ -18,6 +19,7 @@ class SingleThreadTaskRunner;
 
 namespace blink {
 class PeerConnectionDependencyFactory;
+class RTCPeerConnectionHandler; //hgy
 
 // A map and owner of |WebRtcMediaStreamTrackAdapter|s. It takes care of
 // creating, initializing and disposing track adapters independently of media
@@ -68,10 +70,12 @@ class MODULES_EXPORT WebRtcMediaStreamTrackAdapterMap : public WTF::ThreadSafeRe
     scoped_refptr<blink::WebRtcMediaStreamTrackAdapter> adapter_;
   };
 
+
+
   // Must be invoked on the main thread.
   WebRtcMediaStreamTrackAdapterMap(
       blink::PeerConnectionDependencyFactory* const factory,
-      scoped_refptr<base::SingleThreadTaskRunner> main_thread);
+      scoped_refptr<base::SingleThreadTaskRunner> main_thread, RTCPeerConnectionHandler* ph);
 
   // Gets a new reference to the local track adapter, or null if no such adapter
   // was found. When all references are destroyed the adapter is disposed and
@@ -144,6 +148,9 @@ class MODULES_EXPORT WebRtcMediaStreamTrackAdapterMap : public WTF::ThreadSafeRe
   mutable base::Lock lock_;
   LocalTrackAdapterMap local_track_adapters_;
   RemoteTrackAdapterMap remote_track_adapters_;
+
+  // hgy add |native_peer_connection_| is the libjingle native PeerConnection object.
+  scoped_refptr<webrtc::PeerConnectionInterface> native_peer_connection_;
 };
 
 }  // namespace blink

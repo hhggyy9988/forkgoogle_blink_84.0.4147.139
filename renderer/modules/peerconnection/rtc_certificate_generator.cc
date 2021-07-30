@@ -88,6 +88,8 @@ void GenerateCertificateWithOptionalExpiration(
     blink::RTCCertificateCallback completion_callback,
     scoped_refptr<base::SingleThreadTaskRunner> task_runner) {
   DCHECK(key_params.IsValid());
+
+  VLOG(1) << __func__ << " PeerConnectionDependencyFactory maybe new";
   auto* pc_dependency_factory =
       blink::PeerConnectionDependencyFactory::GetInstance();
   pc_dependency_factory->EnsureInitialized();

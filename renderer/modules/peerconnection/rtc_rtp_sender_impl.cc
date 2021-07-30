@@ -234,6 +234,7 @@ class RTCRtpSenderImpl::RTCRtpSenderInternal
     std::unique_ptr<blink::WebRtcMediaStreamTrackAdapterMap::AdapterRef>
         track_ref;
     webrtc::MediaStreamTrackInterface* webrtc_track = nullptr;
+	
     if (!with_track.IsNull()) {
       track_ref = track_map_->GetOrCreateLocalTrackAdapter(with_track);
       webrtc_track = track_ref->webrtc_track();

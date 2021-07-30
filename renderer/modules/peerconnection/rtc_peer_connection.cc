@@ -120,6 +120,7 @@
 #include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 #include "third_party/blink/renderer/platform/wtf/functional.h"
 #include "third_party/blink/renderer/platform/wtf/std_lib_extras.h"
+
 #include "third_party/webrtc/api/data_channel_interface.h"
 #include "third_party/webrtc/api/dtls_transport_interface.h"
 #include "third_party/webrtc/api/jsep.h"
@@ -641,7 +642,7 @@ RTCPeerConnection* RTCPeerConnection::Create(
     const RTCConfiguration* rtc_configuration,
     const Dictionary& media_constraints,
     ExceptionState& exception_state) {
-  VLOG(1) << "hgy:static 1-RTCPeerConnection::Create";
+  VLOG(1) << "hgy:static RTCPeerConnection::Create E1";
   if (context->IsContextDestroyed()) {
     exception_state.ThrowDOMException(
         DOMExceptionCode::kNotSupportedError,
@@ -718,10 +719,8 @@ RTCPeerConnection* RTCPeerConnection::Create(
     const RTCConfiguration* rtc_configuration,
     const ScriptValue& media_constraints_value,
     ExceptionState& exception_state) {
-  VLOG(1) << "hgy:static 2-RTCPeerConnection::Create";
-  Dictionary media_constraints(context->GetIsolate(),
-                               media_constraints_value.V8Value(),
-                               exception_state);
+  VLOG(1) << "hgy:static RTCPeerConnection::Create E2";
+  Dictionary media_constraints(context->GetIsolate(),media_constraints_value.V8Value(), exception_state);
   if (exception_state.HadException())
     return nullptr;
 
@@ -732,7 +731,7 @@ RTCPeerConnection* RTCPeerConnection::Create(
     ExecutionContext* context,
     const RTCConfiguration* rtc_configuration,
     ExceptionState& exception_state) {
-  VLOG(1) << "hgy:static 3-RTCPeerConnection::Create";
+  VLOG(1) << "hgy:static RTCPeerConnection::Create E3";
   return Create(context, rtc_configuration, Dictionary(), exception_state);
 }
 
@@ -771,7 +770,7 @@ RTCPeerConnection::RTCPeerConnection(
   }else if(configuration.sdp_semantics == webrtc::SdpSemantics::kUnifiedPlan){
   VLOG(1) << "hgy:obj=" << this << " RTCPeerConnection ctor SdpSemantics kUnifiedPlan";
   }else {
-  VLOG(1) << "hgy:obj=" <<this << " RTCPeerConnection ctor SdpSemantics xxx";
+  VLOG(1) << "hgy:obj=" << this << " RTCPeerConnection ctor SdpSemantics unkown";
   }
 
   InstanceCounters::IncrementCounter(
@@ -832,8 +831,7 @@ RTCPeerConnection::~RTCPeerConnection() {
   InstanceCounters::DecrementCounter(
       InstanceCounters::kRTCPeerConnectionCounter);
   DCHECK_GE(InstanceCounters::CounterValue(
-                InstanceCounters::kRTCPeerConnectionCounter),
-            0);
+                InstanceCounters::kRTCPeerConnectionCounter), 0);
 }
 
 void RTCPeerConnection::Dispose() {
@@ -2319,6 +2317,7 @@ RTCRtpTransceiver* RTCPeerConnection::addTransceiver(
     const MediaStreamTrackOrString& track_or_kind,
     const RTCRtpTransceiverInit* init,
     ExceptionState& exception_state) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   if (sdp_semantics_ != webrtc::SdpSemantics::kUnifiedPlan) {
     exception_state.ThrowDOMException(DOMExceptionCode::kInvalidStateError,
                                       kOnlySupportedInUnifiedPlanMessage);
@@ -2378,6 +2377,8 @@ RTCRtpSender* RTCPeerConnection::addTrack(MediaStreamTrack* track,
                                           ExceptionState& exception_state) {
   DCHECK(track);
   DCHECK(track->Component());
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
+  
   if (ThrowExceptionIfSignalingStateClosed(signaling_state_, &exception_state))
     return nullptr;
   if (sdp_semantics_ == webrtc::SdpSemantics::kPlanB && streams.size() >= 2) {
@@ -2447,6 +2448,8 @@ RTCRtpSender* RTCPeerConnection::addTrack(MediaStreamTrack* track,
 void RTCPeerConnection::removeTrack(RTCRtpSender* sender,
                                     ExceptionState& exception_state) {
   DCHECK(sender);
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
+  
   if (ThrowExceptionIfSignalingStateClosed(signaling_state_, &exception_state))
     return;
   auto* it = FindSender(*sender->web_sender());
@@ -2496,6 +2499,7 @@ RTCDataChannel* RTCPeerConnection::createDataChannel(
     String label,
     const RTCDataChannelInit* data_channel_dict,
     ExceptionState& exception_state) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   if (ThrowExceptionIfSignalingStateClosed(signaling_state_, &exception_state))
     return nullptr;
 
@@ -2655,6 +2659,7 @@ RTCRtpSender* RTCPeerConnection::CreateOrUpdateSender(
 RTCRtpReceiver* RTCPeerConnection::CreateOrUpdateReceiver(
     std::unique_ptr<RTCRtpReceiverPlatform> platform_receiver) {
   auto* receiver_it = FindReceiver(*platform_receiver);
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   // Create track.
   MediaStreamTrack* track;
   if (receiver_it == rtp_receivers_.end()) {
@@ -2696,6 +2701,7 @@ RTCRtpReceiver* RTCPeerConnection::CreateOrUpdateReceiver(
 
 RTCRtpTransceiver* RTCPeerConnection::CreateOrUpdateTransceiver(
     std::unique_ptr<RTCRtpTransceiverPlatform> platform_transceiver) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   String kind = (platform_transceiver->Receiver()->Track().Source().GetType() ==
                  WebMediaStreamSource::kTypeAudio)
                     ? "audio"
@@ -2807,6 +2813,7 @@ void RTCPeerConnection::RegisterTrack(MediaStreamTrack* track) {
 }
 
 void RTCPeerConnection::NoteSdpCreated(const RTCSessionDescription& desc) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   SdpUsageCategory sdp_usage = DeduceSdpUsageCategory(
       desc.type(), desc.sdp(), sdp_semantics_specified_, sdp_semantics_);
   if (desc.type() == "offer") {
@@ -2822,6 +2829,7 @@ void RTCPeerConnection::NoteSdpCreated(const RTCSessionDescription& desc) {
 
 void RTCPeerConnection::OnStreamAddTrack(MediaStream* stream,
                                          MediaStreamTrack* track) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   ExceptionState exception_state(v8::Isolate::GetCurrent(),
                                  ExceptionState::kExecutionContext, nullptr,
                                  nullptr);
@@ -2837,6 +2845,8 @@ void RTCPeerConnection::OnStreamAddTrack(MediaStream* stream,
 void RTCPeerConnection::OnStreamRemoveTrack(MediaStream* stream,
                                             MediaStreamTrack* track) {
   auto* sender = FindSenderForTrackAndStream(track, stream);
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
+  
   if (sender) {
     ExceptionState exception_state(v8::Isolate::GetCurrent(),
                                    ExceptionState::kExecutionContext, nullptr,
@@ -2851,6 +2861,8 @@ void RTCPeerConnection::OnStreamRemoveTrack(MediaStream* stream,
 void RTCPeerConnection::NegotiationNeeded() {
   DCHECK(!closed_);
   negotiation_needed_ = true;
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
+  
   Microtask::EnqueueMicrotask(
       WTF::Bind(&RTCPeerConnection::MaybeFireNegotiationNeeded,
                 WrapWeakPersistent(this)));
@@ -2868,6 +2880,7 @@ void RTCPeerConnection::DidGenerateICECandidate(
   DCHECK(!closed_);
   DCHECK(GetExecutionContext()->IsContextThread());
   DCHECK(platform_candidate);
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   RTCIceCandidate* ice_candidate = RTCIceCandidate::Create(platform_candidate);
   ScheduleDispatchEvent(RTCPeerConnectionIceEvent::Create(ice_candidate));
 }
@@ -2880,6 +2893,8 @@ void RTCPeerConnection::DidFailICECandidate(const String& address,
                                             const String& error_text) {
   DCHECK(!closed_);
   DCHECK(GetExecutionContext()->IsContextThread());
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
+  
   ScheduleDispatchEvent(RTCPeerConnectionIceErrorEvent::Create(
       address, port, host_candidate, url, error_code, error_text));
 }
@@ -2888,6 +2903,7 @@ void RTCPeerConnection::DidChangeSignalingState(
     webrtc::PeerConnectionInterface::SignalingState new_state) {
   DCHECK(!closed_);
   DCHECK(GetExecutionContext()->IsContextThread());
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   ChangeSignalingState(new_state, true);
 }
 
@@ -2895,6 +2911,7 @@ void RTCPeerConnection::DidChangeIceGatheringState(
     webrtc::PeerConnectionInterface::IceGatheringState new_state) {
   DCHECK(!closed_);
   DCHECK(GetExecutionContext()->IsContextThread());
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   ChangeIceGatheringState(new_state);
 }
 
@@ -2902,6 +2919,8 @@ void RTCPeerConnection::DidChangeIceConnectionState(
     webrtc::PeerConnectionInterface::IceConnectionState new_state) {
   DCHECK(!closed_);
   DCHECK(GetExecutionContext()->IsContextThread());
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
+  
   if (sdp_semantics_ == webrtc::SdpSemantics::kUnifiedPlan) {
     // Unified plan relies on UpdateIceConnectionState() instead.
     peer_handler_->TrackIceConnectionStateChange(
@@ -2927,6 +2946,8 @@ void RTCPeerConnection::DidAddReceiverPlanB(
   DCHECK(!closed_);
   DCHECK(GetExecutionContext()->IsContextThread());
   DCHECK_EQ(sdp_semantics_, webrtc::SdpSemantics::kPlanB);
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
+  
   if (signaling_state_ ==
       webrtc::PeerConnectionInterface::SignalingState::kClosed)
     return;
@@ -2985,6 +3006,7 @@ void RTCPeerConnection::DidRemoveReceiverPlanB(
   DCHECK(!closed_);
   DCHECK(GetExecutionContext()->IsContextThread());
   DCHECK_EQ(sdp_semantics_, webrtc::SdpSemantics::kPlanB);
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
 
   auto* it = FindReceiver(*platform_receiver);
   DCHECK(it != rtp_receivers_.end());
@@ -3018,6 +3040,7 @@ void RTCPeerConnection::DidRemoveReceiverPlanB(
 
 void RTCPeerConnection::DidModifySctpTransport(
     WebRTCSctpTransportSnapshot snapshot) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   if (!snapshot.transport) {
     sctp_transport_ = nullptr;
     return;
@@ -3041,6 +3064,7 @@ void RTCPeerConnection::DidModifyTransceivers(
     Vector<std::unique_ptr<RTCRtpTransceiverPlatform>> platform_transceivers,
     Vector<uintptr_t> removed_transceiver_ids,
     bool is_remote_description) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   for (auto id : removed_transceiver_ids) {
     for (auto* it = transceivers_.begin(); it != transceivers_.end(); ++it) {
       if ((*it)->platform_transceiver()->Id() == id) {
@@ -3176,6 +3200,7 @@ void RTCPeerConnection::SetAssociatedMediaStreams(
     HeapVector<std::pair<Member<MediaStream>, Member<MediaStreamTrack>>>*
         add_list) {
   MediaStreamVector known_streams = getRemoteStreams();
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
 
   MediaStreamVector streams;
   for (const auto& stream_id : stream_ids) {
@@ -3216,6 +3241,7 @@ void RTCPeerConnection::DidAddRemoteDataChannel(
     scoped_refptr<webrtc::DataChannelInterface> channel) {
   DCHECK(!closed_);
   DCHECK(GetExecutionContext()->IsContextThread());
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
 
   if (signaling_state_ ==
       webrtc::PeerConnectionInterface::SignalingState::kClosed)
@@ -3280,6 +3306,7 @@ void RTCPeerConnection::ContextDestroyed() {
 void RTCPeerConnection::ChangeSignalingState(
     webrtc::PeerConnectionInterface::SignalingState signaling_state,
     bool dispatch_event_immediately) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   if (signaling_state_ == signaling_state)
     return;
   if (signaling_state_ !=
@@ -3295,6 +3322,7 @@ void RTCPeerConnection::ChangeSignalingState(
 
 void RTCPeerConnection::ChangeIceGatheringState(
     webrtc::PeerConnectionInterface::IceGatheringState ice_gathering_state) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   if (ice_connection_state_ !=
       webrtc::PeerConnectionInterface::kIceConnectionClosed) {
     ScheduleDispatchEvent(
@@ -3312,6 +3340,7 @@ void RTCPeerConnection::ChangeIceGatheringState(
 
 bool RTCPeerConnection::SetIceGatheringState(
     webrtc::PeerConnectionInterface::IceGatheringState ice_gathering_state) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   if (ice_connection_state_ !=
           webrtc::PeerConnectionInterface::kIceConnectionClosed &&
       ice_gathering_state_ != ice_gathering_state) {
@@ -3397,6 +3426,7 @@ bool RTCPeerConnection::HasAllCompletedOrClosedIceTransports() const {
 }
 
 bool RTCPeerConnection::HasAllConnectedCompletedOrClosedIceTransports() const {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   for (auto& transport : ActiveIceTransports()) {
     if (transport->GetState() != webrtc::IceTransportState::kConnected &&
         transport->GetState() != webrtc::IceTransportState::kCompleted &&
@@ -3409,6 +3439,7 @@ bool RTCPeerConnection::HasAllConnectedCompletedOrClosedIceTransports() const {
 void RTCPeerConnection::ChangePeerConnectionState(
     webrtc::PeerConnectionInterface::PeerConnectionState
         peer_connection_state) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   if (peer_connection_state_ !=
       webrtc::PeerConnectionInterface::PeerConnectionState::kClosed) {
     ScheduleDispatchEvent(
@@ -3421,6 +3452,7 @@ void RTCPeerConnection::ChangePeerConnectionState(
 bool RTCPeerConnection::SetPeerConnectionState(
     webrtc::PeerConnectionInterface::PeerConnectionState
         peer_connection_state) {
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   if (peer_connection_state_ !=
           webrtc::PeerConnectionInterface::PeerConnectionState::kClosed &&
       peer_connection_state_ != peer_connection_state) {

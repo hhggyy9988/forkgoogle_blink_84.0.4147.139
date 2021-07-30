@@ -499,7 +499,7 @@ void VideoCaptureImpl::OnNewBuffer(
 void VideoCaptureImpl::OnBufferReady(
     int32_t buffer_id,
     media::mojom::blink::VideoFrameInfoPtr info) {
-  DVLOG(1) << __func__ << " buffer_id: " << buffer_id;
+  VLOG(1) << __func__ << " buffer_id: " << buffer_id;
   DCHECK_CALLED_ON_VALID_THREAD(io_thread_checker_);
 
   bool consume_buffer = state_ == VIDEO_CAPTURE_STATE_STARTED;
@@ -541,8 +541,13 @@ void VideoCaptureImpl::OnBufferReady(
   DCHECK(iter != client_buffers_.end());
   scoped_refptr<BufferContext> buffer_context = iter->second;
   scoped_refptr<media::VideoFrame> frame;
+
+  int type = (int)buffer_context->buffer_type();
+  VLOG(1) << __func__ << " buffer_id: " << buffer_id << ", buffer_type = " << type;
+
   switch (buffer_context->buffer_type()) {
     case VideoFrameBufferHandleType::SHARED_BUFFER_HANDLE:
+	  VLOG(1) << __func__ << " buffer_id: " << buffer_id << ", buffer_type SHARED_BUFFER_HANDLE";
       // The frame is backed by a writable (unsafe) shared memory handle, but as
       // it is not sent cross-process the region does not need to be attached to
       // the frame. See also the case for READ_ONLY_SHMEM_REGION.
@@ -561,6 +566,7 @@ void VideoCaptureImpl::OnBufferReady(
                                               info->pixel_format,
                                               info->coded_size.height()) *
                       info->strides->stride_by_plane[1]);
+
         frame = media::VideoFrame::WrapExternalYuvData(
             info->pixel_format, gfx::Size(info->coded_size),
             gfx::Rect(info->visible_rect), info->visible_rect.size(),
@@ -577,6 +583,7 @@ void VideoCaptureImpl::OnBufferReady(
       }
       break;
     case VideoFrameBufferHandleType::READ_ONLY_SHMEM_REGION:
+	  VLOG(1) << __func__ << " buffer_id: " << buffer_id << ", buffer_type READ_ONLY_SHMEM_REGION";
       // As with the SHARED_BUFFER_HANDLE type, it is sufficient to just wrap
       // the data without attaching the shared region to the frame.
       frame = media::VideoFrame::WrapExternalData(
@@ -586,9 +593,11 @@ void VideoCaptureImpl::OnBufferReady(
           buffer_context->data_size(), info->timestamp);
       break;
     case VideoFrameBufferHandleType::SHARED_MEMORY_VIA_RAW_FILE_DESCRIPTOR:
+	  VLOG(1) << __func__ << " buffer_id: " << buffer_id << ", buffer_type SHARED_MEMORY_VIA_RAW_FILE_DESCRIPTOR";
       NOTREACHED();
       break;
     case VideoFrameBufferHandleType::MAILBOX_HANDLES: {
+	  VLOG(1) << __func__ << " buffer_id: " << buffer_id << ", buffer_type MAILBOX_HANDLES";
       gpu::MailboxHolder mailbox_holder_array[media::VideoFrame::kMaxPlanes];
       CHECK_EQ(media::VideoFrame::kMaxPlanes,
                buffer_context->mailbox_holders().size());
@@ -603,6 +612,7 @@ void VideoCaptureImpl::OnBufferReady(
       break;
     }
     case VideoFrameBufferHandleType::GPU_MEMORY_BUFFER_HANDLE: {
+	  VLOG(1) << __func__ << " buffer_id: " << buffer_id << ", buffer_type GPU_MEMORY_BUFFER_HANDLE";
       // Create GpuMemoryBuffer from handle.
       if (!buffer_context->GetGpuMemoryBuffer()) {
         gfx::BufferFormat gfx_format;
@@ -617,8 +627,7 @@ void VideoCaptureImpl::OnBufferReady(
         // The GpuMemoryBuffer is allocated and owned by the video capture
         // buffer pool from the video capture service process, so we don't need
         // to destroy the GpuMemoryBuffer here.
-        auto gmb =
-            gpu_memory_buffer_support_->CreateGpuMemoryBufferImplFromHandle(
+        auto gmb = gpu_memory_buffer_support_->CreateGpuMemoryBufferImplFromHandle(
                 buffer_context->TakeGpuMemoryBufferHandle(),
                 gfx::Size(info->coded_size), gfx_format,
                 gfx::BufferUsage::SCANOUT_CAMERA_READ_WRITE, base::DoNothing());
@@ -645,6 +654,8 @@ void VideoCaptureImpl::OnBufferReady(
       return;
     }
   }
+
+  VLOG(1) << __func__ << " buffer_id: " << buffer_id << " KKK";
   OnVideoFrameReady(buffer_id, reference_time, std::move(info),
                     std::move(frame), std::move(buffer_context));
 }

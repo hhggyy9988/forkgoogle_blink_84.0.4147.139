@@ -113,8 +113,7 @@ class ProxyAsyncResolverFactory final : public webrtc::AsyncResolverFactory {
 PeerConnectionDependencyFactory::PeerConnectionDependencyFactory(
     bool create_p2p_socket_dispatcher)
     : network_manager_(nullptr),
-      p2p_socket_dispatcher_(
-          create_p2p_socket_dispatcher ? new P2PSocketDispatcher() : nullptr),
+      p2p_socket_dispatcher_(create_p2p_socket_dispatcher ? new P2PSocketDispatcher() : nullptr),
       signaling_thread_(nullptr),
       worker_thread_(nullptr),
       chrome_signaling_thread_("WebRTC_Signaling"),
@@ -129,8 +128,7 @@ PeerConnectionDependencyFactory::~PeerConnectionDependencyFactory() {
   DCHECK(!pc_factory_);
 }
 
-PeerConnectionDependencyFactory*
-PeerConnectionDependencyFactory::GetInstance() {
+PeerConnectionDependencyFactory* PeerConnectionDependencyFactory::GetInstance() {
   DEFINE_STATIC_LOCAL(PeerConnectionDependencyFactory, instance, (/*create_p2p_socket_dispatcher= */ true));
   return &instance;
 }
@@ -175,8 +173,7 @@ void PeerConnectionDependencyFactory::CreatePeerConnectionFactory() {
 
 #if BUILDFLAG(RTC_USE_H264) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
   // Building /w |rtc_use_h264|, is the corresponding run-time feature enabled?
-  if (!base::FeatureList::IsEnabled(
-          blink::features::kWebRtcH264WithOpenH264FFmpeg)) {
+  if (!base::FeatureList::IsEnabled(blink::features::kWebRtcH264WithOpenH264FFmpeg)) {
     // Feature is to be disabled.
     webrtc::DisableRtcUseH264();
   }
@@ -197,6 +194,7 @@ void PeerConnectionDependencyFactory::CreatePeerConnectionFactory() {
   base::WaitableEvent start_worker_event(
       base::WaitableEvent::ResetPolicy::MANUAL,
       base::WaitableEvent::InitialState::NOT_SIGNALED);
+  
   PostCrossThreadTask(
       *chrome_worker_thread_.task_runner().get(), FROM_HERE,
       CrossThreadBindOnce(
@@ -216,16 +214,17 @@ void PeerConnectionDependencyFactory::CreatePeerConnectionFactory() {
     mdns_responder = std::make_unique<MdnsResponderAdapter>();
   }
 #endif  // BUILDFLAG(ENABLE_MDNS)
+
   PostCrossThreadTask(
       *chrome_worker_thread_.task_runner().get(), FROM_HERE,
-      CrossThreadBindOnce(&PeerConnectionDependencyFactory::
-                              CreateIpcNetworkManagerOnWorkerThread,
+      CrossThreadBindOnce(&PeerConnectionDependencyFactory::CreateIpcNetworkManagerOnWorkerThread,
                           CrossThreadUnretained(this),
                           CrossThreadUnretained(&create_network_manager_event),
                           std::move(mdns_responder)));
 
   start_worker_event.Wait();
   create_network_manager_event.Wait();
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E1";
 
   CHECK(worker_thread_);
 
@@ -248,6 +247,7 @@ void PeerConnectionDependencyFactory::CreatePeerConnectionFactory() {
           CrossThreadUnretained(&start_signaling_event)));
 
   start_signaling_event.Wait();
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E2";
   CHECK(signaling_thread_);
 }
 
@@ -334,8 +334,8 @@ void PeerConnectionDependencyFactory::InitializeSignalingThread(
   pcf_deps.signaling_thread = signaling_thread_;
   pcf_deps.task_queue_factory = CreateWebRtcTaskQueueFactory();
   pcf_deps.call_factory = webrtc::CreateCallFactory();
-  pcf_deps.event_log_factory = std::make_unique<webrtc::RtcEventLogFactory>(
-      pcf_deps.task_queue_factory.get());
+  pcf_deps.event_log_factory = std::make_unique<webrtc::RtcEventLogFactory>(pcf_deps.task_queue_factory.get());
+  //hgy
   cricket::MediaEngineDependencies media_deps;
   media_deps.task_queue_factory = pcf_deps.task_queue_factory.get();
   media_deps.adm = audio_device_.get();
@@ -367,14 +367,15 @@ PeerConnectionDependencyFactory::CreatePeerConnection(
     webrtc::PeerConnectionObserver* observer) {
   CHECK(web_frame);
   CHECK(observer);
-  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
 
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   if (!GetPcFactory().get())
     return nullptr;
 
   webrtc::PeerConnectionDependencies dependencies(observer);
   dependencies.allocator = CreatePortAllocator(web_frame);
   dependencies.async_resolver_factory = CreateAsyncResolverFactory();
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E1";
   return GetPcFactory()->CreatePeerConnection(config, std::move(dependencies)).get();
 }
 
@@ -479,6 +480,7 @@ PeerConnectionDependencyFactory::CreatePortAllocator(
   auto port_allocator = std::make_unique<P2PPortAllocator>(
       p2p_socket_dispatcher_, std::move(network_manager), socket_factory_.get(),
       port_config, requesting_origin);
+
   if (IsValidPortRange(min_port, max_port))
     port_allocator->SetPortRange(min_port, max_port);
 
@@ -549,6 +551,7 @@ void PeerConnectionDependencyFactory::InitializeWorkerThread(
   jingle_glue::JingleThreadWrapper::EnsureForCurrentMessageLoop();
   jingle_glue::JingleThreadWrapper::current()->set_send_allowed(true);
   *thread = jingle_glue::JingleThreadWrapper::current();
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   event->Signal();
 }
 
@@ -640,7 +643,7 @@ void PeerConnectionDependencyFactory::EnsureWebRtcAudioDeviceImpl() {
   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
   if (audio_device_.get())
     return;
-
+  VLOG(1) << "hgy:obj=" <<this << " " << __FUNCTION__ << " E";
   audio_device_ = new rtc::RefCountedObject<blink::WebRtcAudioDeviceImpl>();
 }
 

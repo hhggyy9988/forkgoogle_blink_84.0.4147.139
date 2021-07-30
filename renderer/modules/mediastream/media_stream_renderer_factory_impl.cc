@@ -32,6 +32,7 @@ namespace {
 // Note that if there are more than one open capture devices the function
 // will not be able to pick an appropriate device and return 0.
 base::UnguessableToken GetSessionIdForWebRtcAudioRenderer() {
+  VLOG(1) << __func__ << " PeerConnectionDependencyFactory maybe new";
   WebRtcAudioDeviceImpl* audio_device =
       PeerConnectionDependencyFactory::GetInstance()->GetWebRtcAudioDevice();
   return audio_device
@@ -62,7 +63,7 @@ MediaStreamRendererFactoryImpl::GetVideoRenderer(
     scoped_refptr<base::SingleThreadTaskRunner> main_render_task_runner) {
   DCHECK(!web_stream.IsNull());
 
-  DVLOG(1) << "MediaStreamRendererFactoryImpl::GetVideoRenderer stream:"
+  VLOG(1) << "MediaStreamRendererFactoryImpl::GetVideoRenderer stream:"
            << web_stream.Id().Utf8();
 
   WebVector<WebMediaStreamTrack> video_tracks = web_stream.VideoTracks();
@@ -71,9 +72,7 @@ MediaStreamRendererFactoryImpl::GetVideoRenderer(
     return nullptr;
   }
 
-  return new MediaStreamVideoRendererSink(video_tracks[0], repaint_cb,
-                                          std::move(io_task_runner),
-                                          std::move(main_render_task_runner));
+  return new MediaStreamVideoRendererSink(video_tracks[0], repaint_cb, std::move(io_task_runner), std::move(main_render_task_runner));
 }
 
 scoped_refptr<WebMediaStreamAudioRenderer>
@@ -133,6 +132,7 @@ MediaStreamRendererFactoryImpl::GetAudioRenderer(
   }
 
   // This is a remote WebRTC media stream.
+  VLOG(1) << __func__ << " PeerConnectionDependencyFactory maybe new";
   WebRtcAudioDeviceImpl* audio_device =
       PeerConnectionDependencyFactory::GetInstance()->GetWebRtcAudioDevice();
   DCHECK(audio_device);
@@ -151,8 +151,7 @@ MediaStreamRendererFactoryImpl::GetAudioRenderer(
         __func__));
 
     renderer = new WebRtcAudioRenderer(
-        PeerConnectionDependencyFactory::GetInstance()
-            ->GetWebRtcSignalingTaskRunner(),
+        PeerConnectionDependencyFactory::GetInstance()->GetWebRtcSignalingTaskRunner(),
         web_stream, web_frame, GetSessionIdForWebRtcAudioRenderer(),
         device_id.Utf8(), std::move(on_render_error_callback));
 

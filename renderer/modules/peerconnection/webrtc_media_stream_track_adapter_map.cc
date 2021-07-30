@@ -10,6 +10,7 @@
 #include "base/memory/ptr_util.h"
 #include "base/single_thread_task_runner.h"
 #include "third_party/blink/renderer/modules/peerconnection/peer_connection_dependency_factory.h"
+#include "third_party/blink/renderer/modules/peerconnection/rtc_peer_connection_handler.h" //hgy
 
 namespace blink {
 
@@ -67,19 +68,19 @@ void WebRtcMediaStreamTrackAdapterMap::AdapterRef::InitializeOnMainThread() {
   if (type_ == WebRtcMediaStreamTrackAdapterMap::AdapterRef::Type::kRemote) {
     base::AutoLock scoped_lock(map_->lock_);
     if (!map_->remote_track_adapters_.FindBySecondary(web_track().UniqueId())) {
-      map_->remote_track_adapters_.SetSecondaryKey(webrtc_track(),
-                                                   web_track().UniqueId());
+      map_->remote_track_adapters_.SetSecondaryKey(webrtc_track(), web_track().UniqueId());
     }
   }
 }
 
 WebRtcMediaStreamTrackAdapterMap::WebRtcMediaStreamTrackAdapterMap(
     blink::PeerConnectionDependencyFactory* const factory,
-    scoped_refptr<base::SingleThreadTaskRunner> main_thread)
+    scoped_refptr<base::SingleThreadTaskRunner> main_thread, RTCPeerConnectionHandler* ph)
     : factory_(factory), main_thread_(std::move(main_thread)) {
   DCHECK(factory_);
   DCHECK(main_thread_);
-  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+  //this->native_peer_connection_ = ph->native_peer_connection();
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E ph = " << ph << " native ph = " << ph;
 }
 
 WebRtcMediaStreamTrackAdapterMap::~WebRtcMediaStreamTrackAdapterMap() {
@@ -120,7 +121,7 @@ WebRtcMediaStreamTrackAdapterMap::GetOrCreateLocalTrackAdapter(
   DCHECK(!web_track.IsNull());
   DCHECK(main_thread_->BelongsToCurrentThread());
   base::AutoLock scoped_lock(lock_);
-  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E " << " native pc = " << native_peer_connection_;;
   scoped_refptr<blink::WebRtcMediaStreamTrackAdapter>* adapter_ptr =
       local_track_adapters_.FindByPrimary(web_track.UniqueId());
   if (adapter_ptr) {
@@ -137,8 +138,7 @@ WebRtcMediaStreamTrackAdapterMap::GetOrCreateLocalTrackAdapter(
   }
   DCHECK(new_adapter->is_initialized());
   local_track_adapters_.Insert(web_track.UniqueId(), new_adapter);
-  local_track_adapters_.SetSecondaryKey(web_track.UniqueId(),
-                                        new_adapter->webrtc_track());
+  local_track_adapters_.SetSecondaryKey(web_track.UniqueId(), new_adapter->webrtc_track());
   return base::WrapUnique(
       new AdapterRef(this, AdapterRef::Type::kLocal, new_adapter));
 }
@@ -167,6 +167,7 @@ WebRtcMediaStreamTrackAdapterMap::GetRemoteTrackAdapter(
     webrtc::MediaStreamTrackInterface* webrtc_track) {
   base::AutoLock scoped_lock(lock_);
   VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+  
   scoped_refptr<blink::WebRtcMediaStreamTrackAdapter>* adapter_ptr =
       remote_track_adapters_.FindByPrimary(webrtc_track);
   if (!adapter_ptr)
@@ -181,7 +182,8 @@ WebRtcMediaStreamTrackAdapterMap::GetOrCreateRemoteTrackAdapter(
   DCHECK(webrtc_track);
   DCHECK(!main_thread_->BelongsToCurrentThread());
   base::AutoLock scoped_lock(lock_);
-  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E";
+  VLOG(1) << "hgy:obj=" << this << " " << __FUNCTION__ << " E " << " native pc = " << native_peer_connection_;;
+
   scoped_refptr<blink::WebRtcMediaStreamTrackAdapter>* adapter_ptr =
       remote_track_adapters_.FindByPrimary(webrtc_track.get());
   if (adapter_ptr) {
